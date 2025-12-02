@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relógio Brasília</title>
+    <style>
+        /* RESET E CONFIGURAÇÕES GERAIS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        /* CONTAINER PRINCIPAL */
+        .clock-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        /* TÍTULO */
+        .clock-title {
+            color: #e2e8f0;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .clock-subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+        
+        /* RELÓGIO PRINCIPAL */
+        .time-display {
+            font-size: 4rem;
+            font-weight: 300;
+            color: #4ade80;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(74, 222, 128, 0.3);
+        }
+        
+        /* DATA */
+        .date-display {
+            font-size: 1.4rem;
+            color: #cbd5e1;
+            margin-bottom: 40px;
+        }
+        
+        /* LOCALIZAÇÃO */
+        .location {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 40px;
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+        
+        /* BOTÃO VOLTAR */
+        .back-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 1rem;
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        /* RESPONSIVIDADE */
+        @media (max-width: 768px) {
+            .clock-container {
+                padding: 30px;
+            }
+            
+            .time-display {
+                font-size: 3rem;
+            }
+            
+            .date-display {
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .clock-container {
+                padding: 20px;
+            }
+            
+            .time-display {
+                font-size: 2.5rem;
+            }
+            
+            .clock-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="clock-container">
+        <!-- TÍTULO -->
+        <h1 class="clock-title">
+            <i class="fas fa-clock"></i> Relógio Digital
+        </h1>
+        <p class="clock-subtitle">Horário oficial de Brasília</p>
+        
+        <!-- HORÁRIO -->
+        <div class="time-display" id="currentTime">00:00:00</div>
+        
+        <!-- DATA -->
+        <div class="date-display" id="dateDisplay">Carregando data...</div>
+        
+        <!-- LOCALIZAÇÃO -->
+        <div class="location">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Brasília, Brasil (GMT-3)</span>
+        </div>
+        
+        <!-- BOTÃO VOLTAR -->
+        <a href="index.html" class="back-button">
+            <i class="fas fa-arrow-left"></i> Voltar ao Portfólio
+        </a>
+    </div>
+
+    <script>
+        // Função para atualizar o relógio
+        function updateClock() {
+            const now = new Date();
+            
+            // Formatar hora (Brasília é GMT-3)
+            const time = now.toLocaleTimeString('pt-BR', {
+                timeZone: 'America/Sao_Paulo',
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            // Atualizar display da hora
+            document.getElementById('currentTime').textContent = time;
+            
+            // Formatar data
+            const date = now.toLocaleDateString('pt-BR', {
+                timeZone: 'America/Sao_Paulo',
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+            
+            // Capitalizar primeira letra
+            const formattedDate = date.charAt(0).toUpperCase() + date.slice(1);
+            
+            // Atualizar display da data
+            document.getElementById('dateDisplay').textContent = formattedDate;
+            
+            // Efeito de pulsação nos segundos
+            const seconds = now.getSeconds();
+            if (seconds % 2 === 0) {
+                document.getElementById('currentTime').style.textShadow = '0 0 25px rgba(74, 222, 128, 0.4)';
+            } else {
+                document.getElementById('currentTime').style.textShadow = '0 0 15px rgba(74, 222, 128, 0.3)';
+            }
+        }
+        
+        // Atualizar o relógio a cada segundo
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>

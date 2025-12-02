@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evite Obstáculos</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            color: #4ade80;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 25px 0;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 20px;
+            border-radius: 15px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+        
+        .game-area {
+            position: relative;
+            margin: 25px 0;
+        }
+        
+        #gameCanvas {
+            width: 100%;
+            height: 400px;
+            background: #1e293b;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: block;
+        }
+        
+        .controls-info {
+            margin: 20px 0;
+            color: #cbd5e1;
+            font-size: 1rem;
+        }
+        
+        .keys {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .key {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .start-btn {
+            background: #4ade80;
+            color: white;
+        }
+        
+        .pause-btn {
+            background: #fbbf24;
+            color: white;
+        }
+        
+        .reset-btn {
+            background: #f87171;
+            color: white;
+        }
+        
+        .back-btn {
+            background: #64748b;
+            color: white;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #f87171;
+            display: none;
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        .game-over h2 {
+            color: #f87171;
+            margin-bottom: 15px;
+        }
+        
+        .game-over-stats {
+            margin: 20px 0;
+        }
+        
+        .game-over-stat {
+            margin: 10px 0;
+            font-size: 1.2rem;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 25px;
+            text-align: left;
+        }
+        
+        .instructions h3 {
+            color: #4ade80;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .instructions p {
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            #gameCanvas {
+                height: 350px;
+            }
+            
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 250px;
+            }
+            
+            .keys {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Evite Obstáculos</h1>
+        <p class="subtitle">Use as setas para desviar dos obstáculos vermelhos</p>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="time">0</div>
+                <div class="stat-label">Tempo</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="score">0</div>
+                <div class="stat-label">Pontos</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="record">0</div>
+                <div class="stat-label">Recorde</div>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <canvas id="gameCanvas"></canvas>
+            
+            <div class="game-over" id="gameOver">
+                <h2>Fim de Jogo!</h2>
+                <p>Você colidiu com um obstáculo</p>
+                
+                <div class="game-over-stats">
+                    <div class="game-over-stat">Tempo: <span id="finalTime">0</span>s</div>
+                    <div class="game-over-stat">Pontuação: <span id="finalScore">0</span></div>
+                </div>
+                
+                <button class="start-btn" id="restartBtn">Jogar Novamente</button>
+            </div>
+        </div>
+        
+        <div class="controls-info">
+            Controles:
+        </div>
+        
+        <div class="keys">
+            <div class="key">←</div>
+            <div class="key">↑</div>
+            <div class="key">→</div>
+            <div class="key">↓</div>
+        </div>
+        
+        <div class="buttons">
+            <button class="start-btn" id="startBtn">Iniciar Jogo</button>
+            <button class="pause-btn" id="pauseBtn">Pausar</button>
+            <button class="reset-btn" id="resetBtn">Reiniciar</button>
+            <button class="back-btn" onclick="location.href='index.html'">Voltar</button>
+        </div>
+        
+        <div class="instructions">
+            <h3>Como Jogar:</h3>
+            <p>1. Use as setas do teclado para mover o círculo verde</p>
+            <p>2. Desvie dos obstáculos vermelhos que aparecem</p>
+            <p>3. Quanto mais tempo sobreviver, mais pontos ganha</p>
+            <p>4. Colidir com um obstáculo encerra o jogo</p>
+            <p>5. Tente bater seu recorde de tempo!</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuração do jogo
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Ajustar tamanho do canvas
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        
+        // Estado do jogo
+        let game = {
+            active: false,
+            paused: false,
+            time: 0,
+            score: 0,
+            record: localStorage.getItem('obstacleRecord') || 0,
+            speed: 2
+        };
+        
+        // Jogador
+        let player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 20,
+            speed: 5,
+            color: '#4ade80'
+        };
+        
+        // Obstáculos
+        let obstacles = [];
+        let obstacleTimer = 0;
+        
+        // Controles
+        let keys = {};
+        
+        // Elementos DOM
+        const timeEl = document.getElementById('time');
+        const scoreEl = document.getElementById('score');
+        const recordEl = document.getElementById('record');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const gameOverEl = document.getElementById('gameOver');
+        const finalTimeEl = document.getElementById('finalTime');
+        const finalScoreEl = document.getElementById('finalScore');
+        
+        // Inicializar
+        updateDisplay();
+        requestAnimationFrame(gameLoop);
+        
+        // Event Listeners
+        startBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', togglePause);
+        resetBtn.addEventListener('click', resetGame);
+        restartBtn.addEventListener('click', restartGame);
+        
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            
+            // Espaço para pausar
+            if (e.key === ' ') {
+                e.preventDefault();
+                togglePause();
+            }
+            
+            // R para resetar
+            if (e.key === 'r' || e.key === 'R') {
+                resetGame();
+            }
+            
+            // Escape para voltar
+            if (e.key === 'Escape') {
+                location.href = 'index.html';
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        
+        window.addEventListener('resize', () => {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+        });
+        
+        // Funções do jogo
+        function startGame() {
+            if (game.active) return;
+            
+            game.active = true;
+            game.paused = false;
+            game.time = 0;
+            game.score = 0;
+            game.speed = 2;
+            obstacles = [];
+            obstacleTimer = 0;
+            
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            
+            startBtn.disabled = true;
+            pauseBtn.textContent = 'Pausar';
+            gameOverEl.style.display = 'none';
+            
+            updateDisplay();
+        }
+        
+        function togglePause() {
+            if (!game.active) return;
+            
+            game.paused = !game.paused;
+            pauseBtn.textContent = game.paused ? 'Continuar' : 'Pausar';
+        }
+        
+        function resetGame() {
+            game.active = false;
+            game.paused = false;
+            game.time = 0;
+            game.score = 0;
+            game.speed = 2;
+            obstacles = [];
+            
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            
+            startBtn.disabled = false;
+            pauseBtn.textContent = 'Pausar';
+            gameOverEl.style.display = 'none';
+            
+            updateDisplay();
+            draw();
+        }
+        
+        function restartGame() {
+            gameOverEl.style.display = 'none';
+            resetGame();
+            setTimeout(startGame, 300);
+        }
+        
+        function endGame() {
+            game.active = false;
+            
+            finalTimeEl.textContent = Math.floor(game.time);
+            finalScoreEl.textContent = game.score;
+            
+            if (game.time > game.record) {
+                game.record = Math.floor(game.time);
+                localStorage.setItem('obstacleRecord', game.record);
+            }
+            
+            gameOverEl.style.display = 'block';
+            startBtn.disabled = false;
+            
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            timeEl.textContent = Math.floor(game.time);
+            scoreEl.textContent = game.score;
+            recordEl.textContent = game.record;
+        }
+        
+        // Game Loop
+        function gameLoop(timestamp) {
+            if (game.active && !game.paused) {
+                game.time += 1/60;
+                
+                // Aumentar dificuldade com o tempo
+                game.speed = 2 + Math.floor(game.time / 10) * 0.5;
+                game.score = Math.floor(game.time * 10);
+                
+                updatePlayer();
+                updateObstacles();
+                checkCollisions();
+                
+                updateDisplay();
+            }
+            
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function updatePlayer() {
+            // Movimento com setas
+            if (keys['ArrowUp'] || keys['w'] || keys['W']) player.y -= player.speed;
+            if (keys['ArrowDown'] || keys['s'] || keys['S']) player.y += player.speed;
+            if (keys['ArrowLeft'] || keys['a'] || keys['A']) player.x -= player.speed;
+            if (keys['ArrowRight'] || keys['d'] || keys['D']) player.x += player.speed;
+            
+            // Manter jogador dentro da tela
+            player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+            player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+        }
+        
+        function updateObstacles() {
+            // Criar novos obstáculos
+            obstacleTimer += 1/60;
+            if (obstacleTimer > 1.5 - (game.speed * 0.1)) {
+                createObstacle();
+                obstacleTimer = 0;
+            }
+            
+            // Atualizar obstáculos existentes
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                
+                // Movimento aleatório com tendência para o jogador
+                const dx = player.x - obs.x;
+                const dy = player.y - obs.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    obs.x += (dx / distance) * obs.speed * 0.3;
+                    obs.y += (dy / distance) * obs.speed * 0.3;
+                }
+                
+                // Movimento aleatório adicional
+                obs.x += (Math.random() - 0.5) * obs.speed * 0.7;
+                obs.y += (Math.random() - 0.5) * obs.speed * 0.7;
+                
+                // Manter dentro da tela
+                obs.x = Math.max(obs.radius, Math.min(canvas.width - obs.radius, obs.x));
+                obs.y = Math.max(obs.radius, Math.min(canvas.height - obs.radius, obs.y));
+            }
+        }
+        
+        function createObstacle() {
+            const type = Math.random() > 0.5 ? 'circle' : 'square';
+            
+            // Posição inicial aleatória nas bordas
+            let x, y;
+            if (Math.random() > 0.5) {
+                x = Math.random() * canvas.width;
+                y = Math.random() > 0.5 ? 0 : canvas.height;
+            } else {
+                x = Math.random() > 0.5 ? 0 : canvas.width;
+                y = Math.random() * canvas.height;
+            }
+            
+            obstacles.push({
+                x, y,
+                radius: 15 + Math.random() * 10,
+                width: 30 + Math.random() * 20,
+                height: 30 + Math.random() * 20,
+                type,
+                speed: game.speed + Math.random() * 1,
+                color: `hsl(${Math.random() * 30 + 0}, 100%, 60%)`
+            });
+        }
+        
+        function checkCollisions() {
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                let collision = false;
+                
+                if (obs.type === 'circle') {
+                    const dx = player.x - obs.x;
+                    const dy = player.y - obs.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    collision = distance < (player.radius + obs.radius);
+                } else {
+                    // Colisão retangular simples
+                    const left = obs.x - obs.width/2;
+                    const right = obs.x + obs.width/2;
+                    const top = obs.y - obs.height/2;
+                    const bottom = obs.y + obs.height/2;
+                    
+                    const closestX = Math.max(left, Math.min(player.x, right));
+                    const closestY = Math.max(top, Math.min(player.y, bottom));
+                    const distX = player.x - closestX;
+                    const distY = player.y - closestY;
+                    collision = Math.sqrt(distX * distX + distY * distY) < player.radius;
+                }
+                
+                if (collision) {
+                    endGame();
+                    return;
+                }
+            }
+        }
+        
+        function draw() {
+            // Limpar tela
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Desenhar grade de fundo
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            const gridSize = 40;
+            
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Desenhar obstáculos
+            obstacles.forEach(obs => {
+                ctx.fillStyle = obs.color;
+                
+                if (obs.type === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(obs.x, obs.y, obs.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Brilho interno
+                    const gradient = ctx.createRadialGradient(
+                        obs.x, obs.y, 0,
+                        obs.x, obs.y, obs.radius
+                    );
+                    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+                    gradient.addColorStop(1, 'transparent');
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(obs.x, obs.y, obs.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.fillRect(obs.x - obs.width/2, obs.y - obs.height/2, obs.width, obs.height);
+                    
+                    // Brilho interno
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                    ctx.fillRect(
+                        obs.x - obs.width/2 + 5,
+                        obs.y - obs.height/2 + 5,
+                        obs.width - 10,
+                        obs.height - 10
+                    );
+                }
+            });
+            
+            // Desenhar jogador
+            ctx.fillStyle = player.color;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Brilho do jogador
+            const gradient = ctx.createRadialGradient(
+                player.x, player.y, 0,
+                player.x, player.y, player.radius
+            );
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Desenhar HUD
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 16px Inter';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Tempo: ${Math.floor(game.time)}s`, 20, 30);
+            ctx.fillText(`Pontos: ${game.score}`, 20, 55);
+            
+            if (game.active && game.paused) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 32px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('PAUSADO', canvas.width/2, canvas.height/2);
+            }
+        }
+    </script>
+</body>
+</html>

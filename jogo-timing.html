@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timing Perfeito</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #1a1a2e;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #4ecdc4;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        p {
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+        
+        .timer {
+            font-size: 4rem;
+            font-family: monospace;
+            color: #4ecdc4;
+            margin: 30px 0;
+            text-shadow: 0 0 10px rgba(78, 205, 196, 0.3);
+        }
+        
+        .click-btn {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #4ecdc4;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: transform 0.2s;
+        }
+        
+        .click-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+        
+        .click-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .result {
+            min-height: 80px;
+            margin: 20px 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .start-btn {
+            background: #4ecdc4;
+            color: white;
+        }
+        
+        .reset-btn {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .back-btn {
+            background: #666;
+            color: white;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        
+        .instructions h3 {
+            color: #4ecdc4;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Timing Perfeito</h1>
+        <p>Clique quando o timer chegar a ZERO</p>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="score">0</div>
+                <div class="stat-label">Pontos</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="record">0</div>
+                <div class="stat-label">Recorde</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="round">1</div>
+                <div class="stat-label">Rodada</div>
+            </div>
+        </div>
+        
+        <div class="timer" id="timer">3.00</div>
+        
+        <div id="status">Clique em "Iniciar"</div>
+        
+        <button class="click-btn" id="clickBtn" disabled>AGUARDE</button>
+        
+        <div class="result" id="result"></div>
+        
+        <div class="controls">
+            <button class="start-btn" id="startBtn">Iniciar Rodada</button>
+            <button class="reset-btn" id="resetBtn">Reiniciar Jogo</button>
+            <button class="back-btn" onclick="location.href='index.html'">Voltar</button>
+        </div>
+        
+        <div class="instructions">
+            <h3>Como jogar:</h3>
+            <p>1. Clique em "Iniciar Rodada"</p>
+            <p>2. Timer contará de 3.00 até 0.00</p>
+            <p>3. Clique no botão verde quando chegar em ZERO</p>
+            <p>4. Quanto mais preciso, mais pontos!</p>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let record = localStorage.getItem('timingRecord') || 0;
+        let round = 1;
+        let gameActive = false;
+        let timerValue = 3.00;
+        let timerInterval = null;
+        let targetTime = null;
+        let clickTime = null;
+        
+        const scoreEl = document.getElementById('score');
+        const recordEl = document.getElementById('record');
+        const roundEl = document.getElementById('round');
+        const timerEl = document.getElementById('timer');
+        const statusEl = document.getElementById('status');
+        const clickBtn = document.getElementById('clickBtn');
+        const resultEl = document.getElementById('result');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        
+        // Inicializar
+        updateDisplay();
+        
+        // Eventos
+        startBtn.addEventListener('click', startRound);
+        clickBtn.addEventListener('click', handleClick);
+        resetBtn.addEventListener('click', resetGame);
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && gameActive && !clickBtn.disabled) {
+                handleClick();
+            }
+            if (e.code === 'Enter' && !gameActive) {
+                startRound();
+            }
+            if (e.code === 'KeyR') {
+                resetGame();
+            }
+        });
+        
+        function updateDisplay() {
+            scoreEl.textContent = score;
+            recordEl.textContent = record;
+            roundEl.textContent = round;
+        }
+        
+        function startRound() {
+            if (gameActive) return;
+            
+            gameActive = true;
+            timerValue = 3.00;
+            targetTime = null;
+            clickTime = null;
+            
+            startBtn.disabled = true;
+            clickBtn.disabled = true;
+            clickBtn.textContent = "AGUARDE";
+            timerEl.textContent = timerValue.toFixed(2);
+            statusEl.textContent = "Timer iniciado...";
+            resultEl.textContent = "";
+            
+            timerInterval = setInterval(updateTimer, 10);
+        }
+        
+        function updateTimer() {
+            timerValue -= 0.01;
+            timerEl.textContent = timerValue.toFixed(2);
+            
+            if (timerValue <= 0.05 && timerValue > 0) {
+                if (!targetTime) {
+                    targetTime = Date.now();
+                    clickBtn.disabled = false;
+                    clickBtn.textContent = "CLIQUE AGORA!";
+                    statusEl.textContent = "CLIQUE AGORA!";
+                    timerEl.style.color = "#ffd166";
+                }
+            }
+            
+            if (timerValue <= 0) {
+                timerValue = 0;
+                timerEl.textContent = "0.00";
+                timerEl.style.color = "#ff6b6b";
+                
+                if (!clickTime) {
+                    setTimeout(() => {
+                        if (!clickTime) {
+                            endRound(false);
+                        }
+                    }, 100);
+                }
+            }
+        }
+        
+        function handleClick() {
+            if (!gameActive || clickTime) return;
+            
+            clickTime = Date.now();
+            const reactionTime = (clickTime - targetTime) / 1000;
+            
+            clearInterval(timerInterval);
+            evaluateResult(reactionTime);
+        }
+        
+        function evaluateResult(reactionTime) {
+            const absReaction = Math.abs(reactionTime);
+            let points = 0;
+            let message = "";
+            
+            if (absReaction <= 0.02) {
+                message = "PERFEITO! 🎯 +100 pontos";
+                points = 100;
+            } else if (absReaction <= 0.05) {
+                message = "EXCELENTE! ⭐ +80 pontos";
+                points = 80;
+            } else if (absReaction <= 0.1) {
+                message = "BOM! 👍 +60 pontos";
+                points = 60;
+            } else if (absReaction <= 0.2) {
+                message = "REGULAR 👌 +30 pontos";
+                points = 30;
+            } else {
+                message = "MUITO TARDE! 🐢 +10 pontos";
+                points = 10;
+            }
+            
+            score += points;
+            
+            if (score > record) {
+                record = score;
+                localStorage.setItem('timingRecord', record);
+            }
+            
+            round++;
+            
+            resultEl.textContent = message;
+            resultEl.style.color = points >= 80 ? "#4ecdc4" : points >= 30 ? "#ffd166" : "#ff6b6b";
+            
+            updateDisplay();
+            
+            setTimeout(() => {
+                startBtn.disabled = false;
+                clickBtn.textContent = "AGUARDE";
+                clickBtn.disabled = true;
+                gameActive = false;
+                timerEl.style.color = "#4ecdc4";
+                statusEl.textContent = "Clique em 'Iniciar' para nova rodada";
+            }, 2000);
+        }
+        
+        function endRound(clicked) {
+            clearInterval(timerInterval);
+            
+            if (!clicked) {
+                resultEl.textContent = "MUITO TARDE! ⏰ Nenhum ponto";
+                resultEl.style.color = "#ff6b6b";
+            }
+            
+            startBtn.disabled = false;
+            clickBtn.textContent = "AGUARDE";
+            clickBtn.disabled = true;
+            gameActive = false;
+            round++;
+            updateDisplay();
+        }
+        
+        function resetGame() {
+            clearInterval(timerInterval);
+            
+            score = 0;
+            round = 1;
+            gameActive = false;
+            
+            timerEl.textContent = "3.00";
+            timerEl.style.color = "#4ecdc4";
+            clickBtn.textContent = "AGUARDE";
+            clickBtn.disabled = true;
+            startBtn.disabled = false;
+            statusEl.textContent = "Clique em 'Iniciar'";
+            resultEl.textContent = "";
+            
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
